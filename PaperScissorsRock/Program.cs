@@ -30,7 +30,6 @@ namespace PaperScissorsRock
 
         public string GetHmac()
         {
-            //Get hex hash
             var sBuilder = new StringBuilder();
             for (int i = 0; i < hash.Length; i++)
             {
@@ -43,7 +42,6 @@ namespace PaperScissorsRock
 
         public string GetKey()
         {
-            //Get hex key
             var sBuilder = new StringBuilder();
             for (int i = 0; i < 16; i++)
             {
