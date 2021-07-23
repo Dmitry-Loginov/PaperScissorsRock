@@ -12,6 +12,7 @@ namespace PaperScissorsRock
     {
         byte[] key = new byte[16];
         string move;
+        int moveNum = 0;
         HMACSHA256 hmac;
         byte[] hash;
         string formatedHash;
@@ -22,7 +23,9 @@ namespace PaperScissorsRock
             RandomNumberGenerator randomNumberGenerator = RandomNumberGenerator.Create();
             randomNumberGenerator.GetBytes(key);
 
-            move = args[new Random().Next(0, args.Length)];
+            Random random = new Random();
+            moveNum = random.Next(0, args.Length);
+            move = args[moveNum];
             hmac = new HMACSHA256(key);
 
             byte[] moveBytes = System.Text.Encoding.UTF8.GetBytes(move);
@@ -56,6 +59,7 @@ namespace PaperScissorsRock
         }
 
         public string GetMove { get { return move; } }
+        public int GetMoveNum { get { return moveNum; } }
     }
 
     static class Inspector
@@ -102,9 +106,9 @@ namespace PaperScissorsRock
         {
             for(int i = 0; i<arguments.Length; i++)
             {
-                if(arguments[i] == "-1")
+                if(arguments[i] == "0")
                 {
-                    Console.WriteLine("-1 is a reserved point. Please, use another option.");
+                    Console.WriteLine("0 is a reserved point. Please, use another option.");
                     return false;
                 }
             }
@@ -116,7 +120,35 @@ namespace PaperScissorsRock
             arguments = args;
             return CheckLength() && CheckParity() && CheckRepeat() && CheckItem();
         }
+
+        public static void DefineWinner(string[] args, int computerMoveNum, int userMoveNum)
+        {
+            if(computerMoveNum == userMoveNum)
+            {
+                Console.WriteLine("Draw!");
+                return;
+            }
+            int half = args.Length / 2;
+            int i = computerMoveNum;
+            int counter = 0;
+            while(counter < half)
+            {
+                counter++;
+                i++;
+                if (i == args.Length) i = 0;
+                if(i == userMoveNum)
+                {
+                    Console.WriteLine("You win!");
+                    return;
+                }
+            }
+            Console.WriteLine("You lose!");
+            return;
+        }
     }
+    //0 1 2 3 4 5 6
+    //comp - 6
+    //i - 6
 
     class User
     {
@@ -130,12 +162,13 @@ namespace PaperScissorsRock
         string move = "";
 
         public string GetMove { get { return args[moveNum]; } }
+        public int GetMoveNum { get { return moveNum; } }
 
         bool CheckMove(string moveString)
         {
             try
             {
-                if (int.Parse(moveString) > args.Length - 1)
+                if (int.Parse(moveString) > args.Length)
                     return false;
             }
             catch
@@ -143,6 +176,7 @@ namespace PaperScissorsRock
                 return false;
             }
             moveNum = int.Parse(moveString);
+            moveNum--;
             return true;
         }
 
@@ -152,9 +186,9 @@ namespace PaperScissorsRock
             moves.Append("Available moves:\n");
             for (int i = 0; i < args.Length; i++)
             {
-                moves.Append(i.ToString() + " - " + args[i] + "\n");
+                moves.Append((i+1).ToString() + " - " + args[i] + "\n");
             }
-            moves.Append("-1 - exit");
+            moves.Append("0 - exit");
             Console.WriteLine(moves.ToString());
             Console.Write("Enter you move: ");
         }
@@ -167,7 +201,7 @@ namespace PaperScissorsRock
                 move = Console.ReadLine();
             }
 
-            if (moveNum == -1) return -1;
+            if (moveNum == 0) return 0;
             return moveNum;
         }
     }
@@ -191,6 +225,8 @@ namespace PaperScissorsRock
 
             Console.WriteLine("You move: {0}", user.GetMove);
             Console.WriteLine("Computer move: {0}", computer.GetMove);
+
+            Inspector.DefineWinner(args, computer.GetMoveNum, user.GetMoveNum);
 
             Console.WriteLine("HMAC key: {0}", computer.GetKey());
         }
